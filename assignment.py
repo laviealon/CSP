@@ -1,24 +1,23 @@
 class CSP:
-    def __init__(self, variables, domains, constraints):
-        self.variables = variables
-        self.domains = domains
+    def __init__(self, variable_dict, constraints):
+        self.variable_dict = variable_dict
         self.constraints = constraints
 
     def consistent(self, assignment):
         for constraint in self.constraints:
             for variable in assignment:
-                for neighbor in self.variables:
-                    if variable == neighbor or neighbor not in assignment :
+                for neighbor in self.variable_dict.keys():
+                    if variable == neighbor or neighbor not in assignment:
                         continue
                     if not constraint(assignment[variable], assignment[neighbor], variable, neighbor):
                         return False
             return True
 
     def check_assignment_complete(self, assignment):
-        return len(self.variables) == len(assignment)
+        return len(self.variable_dict.keys()) == len(assignment)
 
     def select_unassigned_variable(self, assignment):
-        for variable in self.variables:
+        for variable in self.variable_dict.keys():
             if variable not in assignment:
                 return variable
         return None
@@ -28,11 +27,11 @@ class CSP:
 
     def inference(self, assignment):
         new_domains = dict()
-        for var in self.variables:
+        for var in self.variable_dict.keys():
             inference_domain = []
             if var in assignment:
                 continue
-            for value in self.domains[var]:
+            for value in self.variable_dict[var]:
                 assignment[var] = value
                 if self.consistent(assignment):
                     inference_domain.append(value)
@@ -43,20 +42,21 @@ class CSP:
         return new_domains
 
     def update(self, inferences):
-        old_domains = self.domains.copy()
+        old_domains = self.variable_dict.copy()
         for var in inferences:
-            self.domains[var] = inferences[var]
+            self.variable_dict[var] = inferences[var]
         return old_domains
 
     def restore(self, old_domains):
-        self.domains = old_domains
+        self.variable_dict = old_domains
 
 
 def backtracking_search(csp):
     return csp.backtrack({})
 
+
 def order_domain_values(var, assignment, csp):
-    return csp.domains[var]
+    return csp.variable_dict[var]
 
 
 def backtrack(csp: CSP, assignment):
@@ -80,8 +80,7 @@ def backtrack(csp: CSP, assignment):
 
 if __name__ == '__main__':
     four_queens_csp = CSP(
-        variables=['q1', 'q2', 'q3', 'q4'],
-        domains={q: [1, 2, 3, 4] for q in ['q1', 'q2', 'q3', 'q4']},
+        variable_dict={'q1': [1, 2, 3, 4], 'q2': [1, 2, 3, 4], 'q3': [1, 2, 3, 4], 'q4': [1, 2, 3, 4]},
         constraints=[lambda q1, q2, q1_name, q2_name: q1 != q2 and abs(q1 - q2) != abs(int(q1_name[1]) - int(q2_name[1]))],
     )
     print(backtracking_search(four_queens_csp))
